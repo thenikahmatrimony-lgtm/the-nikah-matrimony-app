@@ -2,14 +2,14 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
-    function approvedUser() {
-      return signedIn() && get(/databases/$(database)/documents/authorizedUsers/$(request.auth.uid)).data.active == true;
-    }
+    function userRecord() { return get(/databases/$(database)/documents/authorizedUsers/$(request.auth.uid)); }
+    function approvedUser() { return signedIn() && userRecord().data.active == true; }
+    function owner() { return approvedUser() && userRecord().data.owner == true; }
     match /profiles/{profileId} {
-      allow read, write: if approvedUser();
+      allow read, create, update: if approvedUser();
+      allow delete: if owner();
     }
     match /authorizedUsers/{uid} {
-      // Provision authorization records from Firebase Console/admin tooling only.
       allow read: if signedIn() && request.auth.uid == uid;
       allow write: if false;
     }
