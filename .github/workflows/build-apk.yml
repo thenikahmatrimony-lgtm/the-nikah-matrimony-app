@@ -74,8 +74,10 @@ jobs:
           print('Patched Capacitor multi-image sharing')
           PY
 
-      - name: Bundle Capacitor plugins
-        run: npx esbuild www/plugins.js --bundle --format=iife --outfile=www/plugins.bundle.js
+      - name: Bundle Capacitor plugins and Firebase cloud sync
+        run: |
+          npx esbuild www/plugins.js --bundle --format=iife --outfile=www/plugins.bundle.js
+          npx esbuild firebase/cloud-sync.js --bundle --format=iife --global-name=TNMCloud --outfile=www/firebase.bundle.js
 
       - name: Add Android platform
         run: npx cap add android
