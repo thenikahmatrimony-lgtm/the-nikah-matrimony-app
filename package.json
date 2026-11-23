@@ -2,15 +2,7 @@
   "name": "the-nikah-matrimony-app",
   "version": "1.0.0",
   "private": true,
-  "scripts": {
-    "build": "echo build"
-  },
-  "dependencies": {
-    "@capacitor/android": "^7.4.3",
-    "@capacitor/core": "^7.4.3"
-  },
-  "devDependencies": {
-    "@capacitor/cli": "^7.4.3",
-    "typescript": "^5.8.3"
-  }
+  "scripts": {"build": "echo build"},
+  "dependencies": {"@capacitor/android": "^7.4.3","@capacitor/core": "^7.4.3","@capacitor/share": "^7.4.3","@capacitor/filesystem": "^7.4.3"},
+  "devDependencies": {"@capacitor/cli": "^7.4.3","typescript": "^5.8.3"}
 }
