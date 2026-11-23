@@ -38,7 +38,7 @@ export async function syncProfiles(records){
   }
   return prepared;
 }
-export async function downloadProfiles(){
+export async function isOwner(){\n  configureFirebase();\n  if(!auth.currentUser) return false;\n  const authDoc=await getDoc(doc(db,'authorizedUsers',auth.currentUser.uid));\n  return authDoc.exists() && authDoc.data().active===true && authDoc.data().owner===true;\n}\nexport async function downloadProfiles(){
   configureFirebase();
   if(!auth.currentUser) throw new Error('Please login first.');
   const uid=auth.currentUser.uid;
