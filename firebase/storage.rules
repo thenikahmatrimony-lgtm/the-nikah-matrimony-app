@@ -4,8 +4,12 @@ service firebase.storage {
     function approvedUser() {
       return request.auth != null && firestore.get(/databases/(default)/documents/authorizedUsers/$(request.auth.uid)).data.active == true;
     }
+    function owner() {
+      return approvedUser() && firestore.get(/databases/(default)/documents/authorizedUsers/$(request.auth.uid)).data.owner == true;
+    }
     match /profilePhotos/{profileId}/{fileName} {
-      allow read, write: if approvedUser();
+      allow read, create, update: if approvedUser();
+      allow delete: if owner();
     }
   }
 }
