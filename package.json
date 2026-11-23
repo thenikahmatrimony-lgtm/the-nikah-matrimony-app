@@ -1,6 +1,5 @@
-
 {
-  "name": "the-nikah-matrimony-app",
+  "name": "the-nikah-matrimony-matrimony-app",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -11,6 +10,7 @@
     "@capacitor/core": "^7.4.3"
   },
   "devDependencies": {
-    "@capacitor/cli": "^7.4.3"
+    "@capacitor/cli": "^7.4.3",
+    "typescript": "^5.8.3"
   }
 }
