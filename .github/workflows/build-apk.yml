@@ -28,6 +28,52 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Fix Capacitor Android multi-image sharing MIME and ClipData
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('node_modules/@capacitor/share/android/src/main/java/com/capacitorjs/plugins/share/SharePlugin.java')
+          s = p.read_text()
+          old = '''            for (int i = 0; i < filesList.size(); i++) {
+                String file = (String) filesList.get(i);
+                if (isFileUrl(file)) {
+                    String type = getMimeType(file);
+                    if (type == null || filesList.size() > 1) {
+                        type = "*/*";
+                    }
+                    intent.setType(type);'''
+          new = '''            String sharedType = null;
+            for (int i = 0; i < filesList.size(); i++) {
+                String file = (String) filesList.get(i);
+                if (isFileUrl(file)) {
+                    String type = getMimeType(file);
+                    if (type == null) {
+                        sharedType = "*/*";
+                    } else if (sharedType == null) {
+                        sharedType = type;
+                    } else if (!sharedType.equals(type)) {
+                        sharedType = (sharedType.startsWith("image/") && type.startsWith("image/")) ? "image/*" : "*/*";
+                    }
+                    intent.setType(sharedType);'''
+          if old not in s:
+              raise SystemExit('Expected MIME block not found; refusing to patch')
+          s = s.replace(old, new, 1)
+          old2 = '''            if (fileUris.size() > 1) {
+                intent.putExtra(Intent.EXTRA_STREAM, fileUris);'''
+          new2 = '''            if (fileUris.size() > 1) {
+                ClipData clipData = ClipData.newRawUri("", fileUris.get(0));
+                for (int i = 1; i < fileUris.size(); i++) {
+                    clipData.addItem(new ClipData.Item(fileUris.get(i)));
+                }
+                intent.setClipData(clipData);
+                intent.putExtra(Intent.EXTRA_STREAM, fileUris);'''
+          if old2 not in s:
+              raise SystemExit('Expected multiple URI block not found; refusing to patch')
+          s = s.replace(old2, new2, 1)
+          p.write_text(s)
+          print('Patched Capacitor multi-image sharing')
+          PY
+
       - name: Bundle Capacitor plugins
         run: npx esbuild www/plugins.js --bundle --format=iife --outfile=www/plugins.bundle.js
 
