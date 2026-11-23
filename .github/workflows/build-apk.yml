@@ -28,8 +28,16 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Bundle Capacitor plugins
+        run: npx esbuild www/plugins.js --bundle --format=iife --outfile=www/plugins.bundle.js
+
       - name: Add Android platform
         run: npx cap add android
+
+      - name: Generate app logo and launcher icons
+        run: |
+          python3 -m pip install --user pillow
+          python3 scripts/generate-icons.py
 
       - name: Sync app
         run: npx cap sync android
