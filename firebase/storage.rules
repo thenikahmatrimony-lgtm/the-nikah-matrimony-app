@@ -1,0 +1,11 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function approvedUser() {
+      return request.auth != null && firestore.get(/databases/(default)/documents/authorizedUsers/$(request.auth.uid)).data.active == true;
+    }
+    match /profilePhotos/{profileId}/{fileName} {
+      allow read, write: if approvedUser();
+    }
+  }
+}
