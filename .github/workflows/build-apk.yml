@@ -48,6 +48,8 @@ jobs:
                   + '\n' + indent + '    for (int i = 1; i < fileUris.size(); i++) {'
                   + '\n' + indent + '        clipData.addItem(new ClipData.Item(fileUris.get(i)));'
                   + '\n' + indent + '    }'
+                  + '\n' + indent + '    intent.setType("image/*");'
+                  + '\n' + indent + '    intent.putParcelableArrayListExtra(Intent.EXTRA_STREAM, fileUris);'
                   + '\n' + indent + '    intent.setClipData(clipData);'
               )
               s = s[:match.end()] + addition + s[match.end():]
