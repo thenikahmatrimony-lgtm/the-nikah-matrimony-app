@@ -13,7 +13,7 @@ const status=document.getElementById('cloudStatus');
 function say(s){status.textContent=s}
 document.getElementById('cloudLogin').onclick=async()=>{try{await TNMCloud.login(document.getElementById('cloudEmail').value,document.getElementById('cloudPassword').value);say('Logged in. Please tap Sync to upload/download profiles.')}catch(e){say('Login failed: '+e.message)}};
 document.getElementById('cloudLogout').onclick=async()=>{try{await TNMCloud.logout();say('Logged out.')}catch(e){say(e.message)}};
-document.getElementById('cloudSync').onclick=async()=>{try{say('Syncing profiles and photos…');await TNMCloud.syncProfiles(records);let remote=await TNMCloud.downloadProfiles();let merged=new Map(records.map(r=>[String(r.shortId||r.id),r]));for(let r of remote)merged.set(String(r.shortId||r.id),r);records=[...merged.values()];saveStore();say('Sync completed. Profiles available: '+records.length)}catch(e){say('Sync error: '+e.message)}};
+document.getElementById('cloudSync').onclick=async()=>{try{say('Downloading cloud profiles…');let remote=await TNMCloud.downloadProfiles();let merged=new Map(remote.map(r=>[String(r.shortId||r.id),r]));for(let r of records)if(!merged.has(String(r.shortId||r.id)))merged.set(String(r.shortId||r.id),r);records=[...merged.values()];say('Uploading local profiles/photos…');records=await TNMCloud.syncProfiles(records);saveStore();say('Sync completed. Profiles available: '+records.length)}catch(e){say('Sync error: '+e.message)}};
 if(TNMCloud.firebaseConfigured())say('Firebase config present. Login with an admin-approved account.');else say('Firebase config blank. Setup config in firebase/firebase-config.js first.');
 })();
 </script></body></html>
