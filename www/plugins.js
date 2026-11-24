@@ -1,3 +1,4 @@
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
-window.TNMNativePlugins = { Share, Filesystem, Directory };
+import { FilePicker } from '@capawesome/capacitor-file-picker';
+window.TNMNativePlugins = { Share, Filesystem, Directory, FilePicker };
