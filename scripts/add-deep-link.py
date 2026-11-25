@@ -2,9 +2,11 @@ from pathlib import Path
 import xml.etree.ElementTree as ET
 
 manifest = Path("android/app/src/main/AndroidManifest.xml")
+android_uri = "http://schemas.android.com/apk/res/android"
+ET.register_namespace("android", android_uri)
 tree = ET.parse(manifest)
 root = tree.getroot()
-android = "{http://schemas.android.com/apk/res/android}"
+android = "{" + android_uri + "}"
 application = root.find("application")
 if application is None:
     raise SystemExit("Android application element not found")
