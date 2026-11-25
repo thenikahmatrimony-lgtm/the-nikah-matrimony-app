@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - uploaded-apk-two-changes
+      - supabase-login-sync-prototype
 
 jobs:
   build:
@@ -60,7 +61,9 @@ jobs:
           PY
 
       - name: Bundle Capacitor plugins
-        run: npx esbuild www/plugins.js --bundle --format=iife --outfile=www/plugins.bundle.js
+        run: |
+          npx esbuild www/plugins.js --bundle --format=iife --outfile=www/plugins.bundle.js
+          npx esbuild www/supabase.js --bundle --format=iife --outfile=www/supabase.bundle.js
 
       - name: Add Android platform
         run: npx cap add android
