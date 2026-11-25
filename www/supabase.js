@@ -103,6 +103,12 @@ export async function getSession() {
   if (error) throw error;
   return session;
 }
+export async function resetPassword() {
+  const { error } = await supabase.auth.resetPasswordForEmail(LOGIN_EMAIL, {
+    redirectTo: 'com.thenikahmatrimony.app://auth/reset'
+  });
+  if (error) throw error;
+}
 export async function login(loginId, password) {
   if (String(loginId).trim().toLowerCase() !== 'thenikahmatrimony') throw new Error('Login ID is incorrect.');
   if (!password) throw new Error('Please enter your password.');
@@ -179,4 +185,4 @@ export function startRealtime() {
       }
     }).subscribe();
 }
-window.TNMSupabase = { ready, getSession, login, logout, syncNow, startRealtime, updatePassword };
+window.TNMSupabase = { ready, getSession, login, resetPassword, logout, syncNow, startRealtime, updatePassword };
