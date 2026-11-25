@@ -21,7 +21,7 @@ function fileToData(f){return new Promise((res,rej)=>{let rd=new FileReader();rd
  const gate=document.getElementById('loginGate'), msg=document.getElementById('loginMessage');
  const setLocked=locked=>{document.body.classList.toggle('locked',locked);gate.style.display=locked?'flex':'none'};
  const report=t=>{msg.textContent=t};
- function applyRecords(next){records=next;localStorage.setItem('tnm_records',JSON.stringify(records));render()}
+ function applyRecords(next){records=next;localStorage.setItem('tnm_records',JSON.stringify(records));tnmSnapshots=new Map(records.map(r=>[String(r.shortId||r.id),JSON.stringify((({updatedAt,...rest})=>rest)(r))]));render()}
  window.TNMApplyCloudRecords=applyRecords;
  window.TNMSaveStore=saveStore;
  $('loginNow').onclick=async()=>{const b=$('loginNow');b.disabled=true;report('Signing in…');try{await TNMSupabase.login('thenikahmatrimony',$('loginPass').value);setLocked(false);$('loginPass').value='';report('');await TNMSupabase.syncNow();}catch(e){setLocked(true);report(e.message||'Login failed. Check your password.')}finally{b.disabled=false}};
