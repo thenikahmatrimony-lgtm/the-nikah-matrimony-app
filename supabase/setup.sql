@@ -35,3 +35,18 @@ begin
 exception when duplicate_object then null;
 when undefined_object then null;
 end $$;
+
+create table if not exists public.tnm_deleted_profiles (
+  profile_id text primary key,
+  deleted_at timestamptz not null default now()
+);
+alter table public.tnm_deleted_profiles enable row level security;
+drop policy if exists "Authenticated admins read TNM deleted profiles" on public.tnm_deleted_profiles;
+create policy "Authenticated admins read TNM deleted profiles"
+  on public.tnm_deleted_profiles for select to authenticated using (true);
+drop policy if exists "Authenticated admins create TNM deleted profiles" on public.tnm_deleted_profiles;
+create policy "Authenticated admins create TNM deleted profiles"
+  on public.tnm_deleted_profiles for insert to authenticated with check (true);
+drop policy if exists "Authenticated admins update TNM deleted profiles" on public.tnm_deleted_profiles;
+create policy "Authenticated admins update TNM deleted profiles"
+  on public.tnm_deleted_profiles for update to authenticated using (true) with check (true);
