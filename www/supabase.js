@@ -92,13 +92,19 @@ export async function syncNow() {
     if (!session) throw new Error('Please login first.');
     const local = localRecords();
     const deleted = deletedIds();
-    const { data: remoteRows, error: fetchError } = await supabase.from('tnm_profiles').select('profile_id,data,updated_at');
+    const [{ data: remoteRows, error: fetchError }, { data: tombstoneRows, error: tombstoneError }] = await Promise.all([
+      supabase.from('tnm_profiles').select('profile_id,data,updated_at'),
+      supabase.from('tnm_deleted_profiles').select('profile_id,deleted_at')
+    ]);
     if (fetchError) throw fetchError;
+    if (tombstoneError) throw tombstoneError;
     const remoteMap = new Map((remoteRows || []).map(row => [row.profile_id, row]));
+    const tombstoneMap = new Map((tombstoneRows || []).map(row => [row.profile_id, row]));
     const localMap = new Map(local.map(record => [profileKey(record), record]));
     const merged = new Map();
 
     for (const [id, record] of localMap) {
+      if (tombstoneMap.has(id)) continue;
       const remote = remoteMap.get(id);
       const localTime = Number(record.updatedAt || 0);
       const remoteTime = remote ? Number(remote.data?.updatedAt || new Date(remote.updated_at).getTime() || 0) : 0;
@@ -117,10 +123,14 @@ export async function syncNow() {
       if (!localMap.has(id)) merged.set(id, await dataForDevice(remote.data));
     }
     for (const id of deleted) {
+      const { error: tombstoneWriteError } = await supabase.from('tnm_deleted_profiles').upsert({ profile_id: id }, { onConflict: 'profile_id' });
+      if (tombstoneWriteError) throw tombstoneWriteError;
       const { error } = await supabase.from('tnm_profiles').delete().eq('profile_id', id);
       if (error) throw error;
+      tombstoneMap.set(id, { profile_id: id });
       merged.delete(id);
     }
+    for (const id of tombstoneMap.keys()) merged.delete(id);
     saveDeletedIds([]);
     const output = [...merged.values()];
     if (window.TNMApplyCloudRecords) window.TNMApplyCloudRecords(output);
