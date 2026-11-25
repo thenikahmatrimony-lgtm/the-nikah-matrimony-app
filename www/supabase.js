@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { App } from '@capacitor/app';
 
 const SUPABASE_URL = 'https://yexmnedkkkfdtatyolhz.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_vagZGzP3RKbbo7Mbm8owmQ_-n_WV2Xk';
@@ -63,6 +64,35 @@ async function dataForDevice(record) {
   return { ...record, photos };
 }
 
+async function processRecoveryUrl(url) {
+  try {
+    const parsed = new URL(url);
+    const params = new URLSearchParams(parsed.hash.replace(/^#/, '') || parsed.search.replace(/^\\?/, ''));
+    const access_token = params.get('access_token');
+    const refresh_token = params.get('refresh_token');
+    const type = params.get('type');
+    if (!access_token || !refresh_token || type !== 'recovery') return false;
+    const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+    if (error) throw error;
+    window.TNMRecoveryPending = true;
+    window.dispatchEvent(new CustomEvent('tnm-password-recovery'));
+    return true;
+  } catch (error) {
+    console.error('TNM password recovery:', error);
+    window.TNMRecoveryError = error.message || 'Password recovery link could not be opened.';
+    window.dispatchEvent(new CustomEvent('tnm-password-recovery-error'));
+    return false;
+  }
+}
+App.addListener('appUrlOpen', ({ url }) => { processRecoveryUrl(url); });
+App.getLaunchUrl().then(result => { if (result && result.url) processRecoveryUrl(result.url); }).catch(() => {});
+export async function updatePassword(password) {
+  if (!password || password.length < 8) throw new Error('Password must be at least 8 characters.');
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) throw new Error('Recovery session expired. Please request a new password email.');
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) throw error;
+}
 export async function ready() {
   const { data: { session }, error } = await supabase.auth.getSession();
   if (error) throw error;
@@ -149,4 +179,4 @@ export function startRealtime() {
       }
     }).subscribe();
 }
-window.TNMSupabase = { ready, getSession, login, logout, syncNow, startRealtime };
+window.TNMSupabase = { ready, getSession, login, logout, syncNow, startRealtime, updatePassword };
