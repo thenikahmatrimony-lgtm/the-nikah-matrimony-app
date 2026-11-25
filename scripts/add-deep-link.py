@@ -1,25 +1,23 @@
 from pathlib import Path
-import xml.etree.ElementTree as ET
+import re
 
 manifest = Path("android/app/src/main/AndroidManifest.xml")
-tree = ET.parse(manifest)
-root = tree.getroot()
-android = "{http://schemas.android.com/apk/res/android}"
-found = False
-for activity in root.iter("activity"):
-    if activity.get(android + "name", "").endswith("MainActivity"):
-        intent = ET.SubElement(activity, "intent-filter")
-        ET.SubElement(intent, "action", {android + "name": "android.intent.action.VIEW"})
-        ET.SubElement(intent, "category", {android + "name": "android.intent.category.DEFAULT"})
-        ET.SubElement(intent, "category", {android + "name": "android.intent.category.BROWSABLE"})
-        ET.SubElement(intent, "data", {
-            android + "scheme": "com.thenikahmatrimony.app",
-            android + "host": "auth",
-            android + "pathPrefix": "/reset"
-        })
-        found = True
-        break
-if not found:
-    raise SystemExit("MainActivity not found in AndroidManifest.xml")
-tree.write(manifest, encoding="utf-8", xml_declaration=True)
-print("TNM password recovery deep link configured")
+source = manifest.read_text()
+if 'android:host="auth"' in source:
+    print("TNM password recovery deep link already configured")
+else:
+    pattern = r'(<activity\\b[^>]*android:name="[^"]*MainActivity"[^>]*>)([\\s\\S]*?)(</activity>)'
+    match = re.search(pattern, source)
+    if not match:
+        raise SystemExit("MainActivity not found in AndroidManifest.xml")
+    intent = """
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="com.thenikahmatrimony.app" android:host="auth" android:pathPrefix="/reset" />
+            </intent-filter>
+"""
+    source = source[:match.end(2)] + intent + source[match.end(2):]
+    manifest.write_text(source)
+    print("TNM password recovery deep link configured")
