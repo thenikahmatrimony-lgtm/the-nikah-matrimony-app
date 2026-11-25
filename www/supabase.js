@@ -81,7 +81,7 @@ export async function login(loginId, password) {
   return data;
 }
 export async function logout() {
-  const { error } = await supabase.auth.signOut();
+  const { error } = await supabase.auth.signOut({ scope: 'local' });
   if (error) throw error;
 }
 export async function syncNow() {
