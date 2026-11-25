@@ -68,7 +68,7 @@ jobs:
       - name: Add Android platform
         run: npx cap add android
 
-      - name: Generate app logo and launcher icons
+      - name: Configure password recovery deep link\n        run: python3 scripts/add-deep-link.py\n\n      - name: Generate app logo and launcher icons
         run: |
           python3 -m pip install --user pillow
           python3 scripts/generate-icons.py
